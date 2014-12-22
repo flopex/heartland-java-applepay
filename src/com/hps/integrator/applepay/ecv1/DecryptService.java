@@ -19,6 +19,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Enumeration;
 
 public class DecryptService
@@ -96,7 +97,15 @@ public class DecryptService
         {
             byte[] keyData = Base64.decode(token.getHeader().getEphemeralPublicKey());
 
-            ECPublicKey ephemeralPublicKey = new ECPublicKeyImpl(keyData);
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyData);
+            KeyFactory keyFactory;
+            ECPublicKey ephemeralPublicKey = null;
+            try {
+                keyFactory = KeyFactory.getInstance("ECDH");
+                ephemeralPublicKey = (ECPublicKey)keyFactory.generatePublic(keySpec);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             KeyAgreement aKeyAgree = KeyAgreement.getInstance("ECDH");
             aKeyAgree.init(mKeyStoreEntities.getPrivateKey());
